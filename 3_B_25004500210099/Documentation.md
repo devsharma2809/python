@@ -1,252 +1,240 @@
-# PTMAE: Pure Python Transactional Micro-Banking & Audit Engine
-**Technical Specification, Architectural Reference, and Compliance Report**
+1. Project Overview
 
----
+The Core Processing & Audit Architecture (CPAA) is a decoupled transactional ledger system engineered completely within vanilla Python 3.x. The engine deliberately avoids external dependencies or third-party frameworks. It enforces a strict environment restriction, importing exclusively the built-in datetime and random modules.
+CPAA serves as a practical, low-level demonstration of computer science paradigms. It implements custom state tracking, pointer-mimicking byte modifications on raw disk files, isolated execution closures, and object-oriented polymorphism without relying on native shortcuts.
 
-## 1. Executive Summary
+2. Infrastructure Diagrams
 
-The **Pure Python Transactional Micro-Banking & Audit Engine (PTMAE)** is an enterprise-grade transactional processing and audit system implemented strictly in **pure Python 3.x**. It operates under zero external third-party library dependencies and strictly enforces standard library restrictions, allowing **only** the `random` and `datetime` built-in modules.
 
-PTMAE is designed to serve as an uncompromised demonstration of core computer science fundamentals, low-level data structure manipulation, manual state machines, pointer-like file I/O byte manipulation, closure scoping, and object-oriented polymorphism.
+2.1 System Processing Topology
 
----
-
-## 2. System Architecture & Class Diagrams
-
-### 2.1 ASCII Architecture Flow Diagram
-
-```
 +=============================================================================+
-|                      PTMAE SYSTEM ARCHITECTURE                              |
+
+|                          CPAA DATA RUNTIME FLOW                             |
 +=============================================================================+
+
 |                                                                             |
-|  [USER / CLI INTERFACE]                                                     |
+|  [TERMINAL INPUT / INTERACTIVE USER]                                        |
 |         │                                                                   |
 |         ▼                                                                   |
 |  +───────────────────────────────────────────────────────────────────────+  |
-|  | MODULE 1: STATE ENGINE (Unit 1)                                       |  |
-|  | - Nested while-loop event loop (Outer: Lifecycle / Inner: Dispatch)   |  |
-|  | - Compound Interest & Penalty Engine (Operators: +, -, *, /, //, %, **)| |
-|  | - Trajectory Guard (Short-Circuit: balance < threshold OR flag)       |  |
+|  | ENGINE SEGMENT A: STATE CONSOLE (Unit 1)                              |  |
+|  | - Layered loop dispatching (Outer: App State / Inner: Command Parsing)|  |
+|  | - Manual Interest & Charge Evaluator (Only: +, -, *, /, //, %, **)    |  |
+|  | - Runaway Prevention Check (Short-circuit Evaluation Logic)           |  |
 |  +──────────────────────────────────┬────────────────────────────────────+  |
 |                                     │                                       |
 |                                     ▼                                       |
 |  +───────────────────────────────────────────────────────────────────────+  |
-|  | MODULE 2: LOG PARSER & CLOSURES (Unit 2)                              |  |
-|  | - Manual Lexer: Index tracking, character buffer, state flags        |  |
-|  |   (Zero str.split, zero str.replace, handles quotes & delimiters)     |  |
-|  | - Stateful Audit Filter: Enclosing closure with `nonlocal` counters    |  |
-|  | - Positional Criteria Filters: Lambdas with `k=k` default binding     |  |
+|  | ENGINE SEGMENT B: PARSING PIPELINES & CLOSURES (Unit 2)               |  |
+|  | - Linear Lexical Analyzer: Index counters, lookaheads, token arrays   |  |
+|  |   (Zero .split(), zero .replace(), raw text literal management)        |  |
+|  | - Encapsulated Inspection Filter: Closure state via `nonlocal` bounds |  |
+|  | - Dynamic Positional Arrays: Lambdas utilizing explicit `k=k` capture |  |
 |  +──────────────────────────────────┬────────────────────────────────────+  |
 |                                     │                                       |
 |                                     ▼                                       |
 |  +───────────────────────────────────────────────────────────────────────+  |
-|  | MODULE 3: DATA INVERSION & IN-PLACE PROCESSING (Unit 3)               |  |
-|  | - Service Catalog Inversion: Single Dict Comprehension Pipeline       |  |
-|  | - Queue In-Place Cleaning: id(data_list) unchanged                    |  |
-|  |   * Tuples -> Lists                                                   |  |
-|  |   * Sets -> Difference update (remove even IDs)                       |  |
-|  |   * Lists -> Descending sort                                          |  |
-|  |   * Primitives -> Index deletion scan (No tracking collection)        |  |
+|  | ENGINE SEGMENT C: COLLECTION STRUCTURING & IN-LINE CLEANING (Unit 3)  |  |
+|  | - Registry Reversal Matrix: Comprehensive Dict Comprehension Pipeline  |  |
+|  | - In-Memory Mutator: Structural cleaning while preserving original id()|  |
+|  |   * Tuples converted to variable lists                                |  |
+|  |   * Set arrays updated via relative difference (purging even IDs)     |  |
+|  |   * Embedded list structures sorted descending                        |  |
+|  |   * Primitives cleaned via selective index extraction (no sub-sets)  |  |
 |  +──────────────────────────────────┬────────────────────────────────────+  |
 |                                     │                                       |
 |         ┌───────────────────────────┴───────────────────────────┐           |
 |         ▼                                                       ▼           |
 |  +─────────────────────────────────────+ +───────────────────────────────+  |
-|  | MODULE 4: FILE ENGINE (Unit 4)      | | MODULE 5: OOP & POLYMORPHISM  |  |
-|  | - r+ In-Place Seek & Tell Updating  | | - Abstract Account Base Class |  |
-|  | - Bidirectional Chunked Shifting    | |   (Private __balance, mangled)|  |
-|  | - f.truncate() on payload shrink    | | - SavingsAccount (Min 1000)   |  |
-|  | - Per-Record try-except-else-finally| | - CurrentAccount (Overdraft)  |  |
-|  |   * Valid -> ledger.txt (timestamp) | | - CreditAccount (2.5% Surchg) |  |
-|  |   * Invalid -> corrupted.log (line#)| | - Batch Settlement Dispatch   |  |
-|  |   * Finally -> Run count reporting  | |   (Isolated try-except per acc|  |
-|  |                                     | |    No max(), min(), sum())    |  |
+|  | ENGINE SEGMENT D: DISK I/O DRIVER   | | ENGINE SEGMENT E: POLYMORPHIC |  |
+|  | - Direct 'r+' File Modification     | |   LEDGER ENTITIES             |  |
+|  | - Bi-directional Data Relocation    | | - Base Abstract Record Blueprint|  |
+|  | - Truncation adjustments on shrink  | |   (Mangled token __balance)     |  |
+|  | - Perimeter Error Catching          | | - Tier 1: Deposit (Min 1000)    |  |
+|  |   * Clear -> audit_ledger.log       | | - Tier 2: CreditLine (Overdraft)|  |
+|  |   * Corrupt -> anomaly_report.txt   | | - Tier 3: Deferred (Surcharge)  |  |
+|  |   * Mandatory metric publication    | | - Multi-type Batch Runner       |  |
+|  |                                     | |   (Isolated try-catch blocks;   |  |
+|  |                                     | |    zero sum(), min(), max())    |  |
 |  +─────────────────────────────────────+ +───────────────────────────────+  |
 |                                                                             |
 +=============================================================================+
-```
 
-### 2.2 ASCII Class Hierarchy Diagram
+2.2 Domain Object Hierarchy
 
-```
                        +──────────────────────────+
+
                        |      Exception           |
                        +────────────┬─────────────+
                                     │
                                     ▼
                        +──────────────────────────+
-                       |     BaseSystemError      |
+
+                       |   SystemExecutionError   |
                        +────────────┬─────────────+
                                     │
-        ┌───────────────────────────┼───────────────────────────┐
+        ┌────────────────___________┼___________________________┐
         ▼                           ▼                           ▼
 +───────────────────────+ +───────────────────+ +────────────────────────────+
-| CorruptedRecordError  | | OutOfBoundsError  | | InsufficientBalanceError   |
+
+|  MalformedRecordError | | RangeBoundaryError| |  DeficitLiquidAssetError  |
 +───────────────────────+ +───────────────────+ +────────────────────────────+
 
 
                        +─────────────────────────────────────────+
-                       |                Account                  |
+
+                       |             LedgerAccount               |
                        +─────────────────────────────────────────+
-                       | + total_accounts: int [Class Attr]      |
-                       | # _account_id: str   [Protected]        |
-                       | - __balance: float   [Private / Mangled]|
+
+                       | + active_record_count: int [Shared]     |
+                       | # _internal_reference: str [Protected]   |
+                       | - __balance: float        [Mangled Key] |
                        +─────────────────────────────────────────+
-                       | + __init__(account_id, initial_balance) |
-                       | + get_account_id() -> str               |
-                       | + get_balance() -> float                |
-                       | + set_balance(new_balance: float)       |
-                       | + process_settlement(amount) [Abstract] |
+
+                       | + __init__(ref_id, baseline_funds)      |
+                       | + get_reference() -> str                |
+                       | + check_liquidity() -> float            |
+                       | + update_funds(target_value: float)     |
+                       | + execute_transaction(value) [Abstract]  |
                        +────────────────────┬────────────────────+
                                             │
         ┌───────────────────────────────────┼───────────────────────────────────┐
         │                                   │                                   │
         ▼                                   ▼                                   ▼
 +───────────────────────────+ +───────────────────────────+ +───────────────────────────+
-|      SavingsAccount       | |      CurrentAccount       | |       CreditAccount       |
+
+|    DepositLedgerAccount   | |    CreditLineAccount      | |    DeferredChargeAccount  |
 +───────────────────────────+ +───────────────────────────+ +───────────────────────────+
-| + MINIMUM_BALANCE = 1000.0| | - __overdraft_limit: float| | + SURCHARGE_RATE = 0.025  |
+
+| + SAFETY_FLOOR = 1000.0   | | - __borrowing_cap: float  | | + TRANSACTION_FEE = 0.025 |
 +───────────────────────────+ +───────────────────────────+ +───────────────────────────+
-| + __init__(id, bal)       | | + __init__(id, bal, limit)| | + __init__(id, limit)     |
-|   calls super().__init__()| |   calls super().__init__()| |   calls super().__init__()|
-| + process_settlement(amt) | | + get_overdraft_limit()   | | + process_settlement(amt) |
-|   Rejects if proj < 1000  | | + set_overdraft_limit()   | |   Adds 2.5% surcharge,    |
-|   raises InsufficientBal  | | + process_settlement(amt) | |   deducts from limit;     |
-|                           | |   Allows neg to -limit;   | |   raises InsufficientBal  |
-|                           | |   raises OutOfBoundsError | |                           |
+
+| + __init__(id, initial)   | | + __init__(id, init, cap) | | + __init__(id, limit)     |
+|   super().__init__() link | |   super().__init__() link | |   super().__init__() link |
+| + execute_transaction(v)  | | + get_limit() / set_limit()| | + execute_transaction(v)  |
+|   Denies if net < 1000;   | |   Allows drop to -cap;    | |   Appends fee to load,    |
+|   throws DeficitLiquidErr | |   throws RangeBoundaryErr | |   reduces cap; validation |
 +───────────────────────────+ +───────────────────────────+ +───────────────────────────+
-```
 
----
+3. Runtime Scope Boundary Directory
 
-## 3. State and Scope Tracking Table
+This register maps variable lifecycle, boundary definitions, name-mangling behavior, and memory isolation rules applied across the engine.
 
-The following table comprehensively documents variable scopes, mutation mechanisms, name mangling behaviors, and runtime isolation across PTMAE.
+Variable Identity	Variable Origin	Enforcement Vector	Visibility Matrix	Behavioral Design & Execution Context
+LedgerAccount.active_record_count	Class Body Block	Global Class Reference (LedgerAccount.active_record_count)	Open Global System	Tracks total instantiated accounts globally; increments automatically within the parent __init__ constructor.
+LedgerAccount._internal_reference	Instance Initialization	Single Underscore Flag (_)	Child Class Contexts	Preserves standard tracking codes across processing loops while preventing direct reassignment.
+LedgerAccount.__balance	Instance Initialization	Double Prefix Obfuscation (_LedgerAccount__balance)	Internal Class Exclusive	Fully encapsulates real balances. Direct calls via instance.__balance prompt an AttributeError.
+CreditLineAccount.__borrowing_cap	Child Initialization	Double Prefix Obfuscation (_CreditLineAccount__borrowing_cap)	Subclass Internal Scope	Controls localized limit safety rails; updated and retrieved strictly via explicit setter/getter mechanisms.
+total_inspected	Outer Functional Block	Explicit nonlocal total_inspected declaration	Closured Scope	Maintains a permanent counter of text lines evaluated by an isolated closure instance across a decoupled execution loop.
+total_validated	Outer Functional Block	Explicit nonlocal total_validated declaration	Closured Scope	Tallies entries meeting validation conditions within a unique closure execution stack.
+k (Index Tracker)	Multi-Iteration Loop	Local Variable Default Assignment (k=k)	Inline Lambda Scope	Evades late-binding evaluation traps in Python by capturing and storing the specific index value immediately during parsing loop setup.
+system_active	Function Frame	Main Terminal Flag	Parent Iteration Stack	Dictates the terminal run cycle; terminates execution cleanly when an explicit exit instruction string is input.
+sub_session_valid	Function Frame	Local Context Flag	Child Iteration Stack	Manages continuous sub-command parsing; sandboxes minor validation failures so syntax faults do not crash the engine.
+data_stream	Parameter Namespace	In-Place Modification Functions (del, .sort())	Caller Reference Tracking	Directly restructures incoming parameter lists. Avoids local re-binding assignments to guarantee identical id() footprints.
+valid_records	Operational Function	Integer Mutation (+= 1)	Core Context & Exception Endpoints	Counts validated items during storage audits without native sum aggregations; broadcasts metrics during the final reporting step.
+corrupt_records	Operational Function	Integer Mutation (+= 1)	Core Context & Exception Endpoints	Tracks structural anomalies across system audits without native math wrappers; broadcasts metrics during the final reporting step.
 
-| Entity / Identifier | Originating Scope | Scope Modifier / Mechanism | Target Visibility | Purpose & Implementation Details |
-| :--- | :--- | :--- | :--- | :--- |
-| `Account.total_accounts` | Class Scope (`Account`) | Direct Class Attribute access (`Account.total_accounts`) | Public (Class & Instances) | Tracks aggregate instances spawned across entire application runtime; incremented in `Account.__init__()`. |
-| `Account._account_id` | Instance Scope (`Account`) | Protected naming convention (`_`) | Derived Subclasses & Intrasystem | Preserves account identification without external re-assignment; accessible via `get_account_id()`. |
-| `Account.__balance` | Instance Scope (`Account`) | Double-leading underscore private mangling (`_Account__balance`) | Class Internal Only | Encapsulates funds strictly. Direct access `acc.__balance` raises `AttributeError`. Access strictly channeled via `get_balance()` and `set_balance()`. |
-| `CurrentAccount.__overdraft_limit` | Instance Scope (`CurrentAccount`) | Double-leading underscore private mangling (`_CurrentAccount__overdraft_limit`) | Subclass Internal Only | Restricts maximum credit overdraft threshold; exposed via dedicated getters/setters. |
-| `audit_count` | Enclosing Scope (`create_audit_filter`) | `nonlocal audit_count` | Inner Closure (`audit_filter`) | Preserves continuous tally of records processed by that specific filter instance across multiple invocations without global state. |
-| `passed_count` | Enclosing Scope (`create_audit_filter`) | `nonlocal passed_count` | Inner Closure (`audit_filter`) | Maintains count of records meeting or exceeding the financial threshold; state remains fully isolated per filter instance. |
-| `k` (Positional Index) | Loop Local Scope (`build_positional_criteria_filters`) | Default argument binding (`k=k`) | Lambda Parameter Scope | Neutralizes Python's closure late-binding by binding current iteration index `k` at lambda definition time. |
-| `system_running` | Function Scope (`run_cli_event_loop`) | Outer while loop flag | Outer Loop Only | Controls macro application lifecycle; exits only when explicit `"exit"` token is received. |
-| `session_active` | Function Scope (`run_cli_event_loop`) | Inner while loop flag | Inner Loop Only | Controls command execution session; isolates sub-command failures so that invalid inputs never crash the engine. |
-| `data_list` | Parameter Scope (`clean_transaction_queue`) | In-Place Mutation (`del`, `.sort()`, `[i] =`) | Caller Object Identity (`id()`) | Mutates caller list directly without re-binding (`data_list = [...]` forbidden). Guaranteed identical `id(data_list)`. |
-| `total_processed` | Function Scope (`process_and_audit_accounts_file`) | Local counter (`+= 1`) | Enclosing function & `finally` | Accumulates valid audit lines without using `sum()`; reported in mandatory `finally` block on every run. |
-| `total_rejected` | Function Scope (`process_and_audit_accounts_file`) | Local counter (`+= 1`) | Enclosing function & `finally` | Accumulates corrupted audit lines without using `sum()`; reported in mandatory `finally` block on every run. |
 
----
+4. Architectural Verification Matrix
 
-## 4. Module Compliance Checklist & Requirement Traceability
 
-This matrix maps every functional requirement (FR) across Units 1 through 5 and non-functional requirements (NFRs) to their concrete implementation in `main.py`.
+Blueprint Tracking ID	Module Segment	Structural Expectation	Implementation Strategy
+FR-1.1	State Console	Layered interactive control terminal utilizing nested while structures; isolates system crashes; exits on manual exit signals.	Driven by layered loop flags (system_active / sub_session_valid). Contains internal try-catch bubbles ensuring standard exceptions fail safely.
+FR-1.2	State Console	Compound yield projections and dynamic calculations using strictly raw algebraic operators (+, -, *, /, //, %, **).	Eliminates the standard math module. Replaces complex algebraic logic with explicit loops and native operator implementations.
+FR-1.3	State Console	Early exit pipeline validation using short-circuit logical assertions to kill process routines the moment bounds are compromised.	Evaluates boundary validation paths instantly through nested or/and evaluations to dump calculations before loop errors occur.
+FR-2.1	Lexical Engine	Custom text string interpreter relying on index tracing, index pointers, and character buffers (No .split() or .replace()).	Employs a text scanning mechanism powered by an index pointer. Evaluates structures manually using character slicing steps.
+FR-2.2	Lexical Engine	Delimiters inside double quotes are parsed as data strings; escaped quote doubletons ("") are converted into a singular literal character (").	Features lookahead assertions that scan for adjacent double-quote matches, advancing index markers manually to filter text.
+FR-2.3	Lexical Engine	Preserves empty data columns (such as ,,) and accurately reads terminating trailing dividers.	Catches consecutive column delimiters, explicitly generating empty placeholder strings inside the output array.
+FR-2.4	Lexical Engine	Closured filtration tool storing data metrics across decoupled calls without storing values in global parameters.	Deploys a parent closure factory housing isolated metrics accessed via clear nonlocal declarations.
+FR-2.5	Lexical Engine	Array of anonymous filtering methods configured inside an execution loop using default assignments to bypass binding traps.	Leverages a manual loop syntax that constructs a collection of anonymous filters, locking in active pointers via k=k.
+FR-3.1	Registry Matrix	Produces an inverted tracking catalog utilizing a singular dictionary comprehension pipeline.	Maps datasets down to a unique lookup model using specialized sorting parameters embedded inside a single dictionary construction expression.
+FR-3.2	Memory Mutator	Restructures mixed variable arrays inside active memory structures while preserving the exact caller object id (id()).	Direct object mutations are applied directly to the original parameter references; bans any list reassignment steps.
+FR-3.3	Memory Mutator	Maps mixed data elements into explicit lists; updates data sets by isolating unique values and filtering target matches.	Evaluates entity types at runtime; isolates data subsets via structural set methods and strips target items.
+FR-3.4	Memory Mutator	Orders list elements downward; filters duplicate values via index-based removal sequences without auxiliary data tracking collections.	Executes an internal array sorting operation. Uses a pointer scanning loop to find duplicates and drops them using structural index deletion.
+FR-4.1	Disk Driver	Central error structure: SystemExecutionError(Exception) leading down to specialized sub-type entities.	Implements a clean, decoupled class tree for catching domain exceptions.
+FR-4.2	Disk Driver	Edits a text-based storage record in-place via "r+" streaming; writes updates directly without damaging surrounding structures.	Employs precise .seek() and .tell() coordinates. Implements memory-safe block shifts to manage document resizing dynamically.
+FR-4.3	Disk Driver	Detects invalid structural rows based on unexpected item lengths, bad alpha tokens, or unmapped account descriptors.	Parses rows against explicit format definitions, testing item lengths, types, and known profile tags.
+FR-4.4	Disk Driver	Executes an isolated try-except-else-finally loop on every row; dumps anomalies with matching line reference trackers.	Wraps row parsing routines in a strict safety architecture, routing outputs to distinct log streams and reporting structural summaries.
+FR-5.1	Ledger Entities	Parent Class: Protected identifier codes, class trackers, and obfuscated variables to demonstrate core encapsulation.	Features hidden instance attributes alongside protected properties, explicitly illustrating name-mangling properties at runtime.
+FR-5.2	Ledger Entities	Specialized profiles for multiple distinct deposit rules, each calling parent definitions via structural super().__init__() hooks.	Implements distinct child logic extensions. Tracks variable processing boundaries while routing setup arguments through base constructors.
+FR-5.3	Ledger Entities	Evaluates and executes diverse transaction structures safely; isolates calculation loops (no native min(), max(), or sum()).	Loops through disparate data sets within sandboxed evaluation layers, running calculations via manual accumulator variables.
+NFR-1	Compliance	Restricts imports strictly to standard Python 3.x core packages, allowing only random and datetime.	Banishment of tools like os, sys, re, or json. Code verification proves clean compliance.
+NFR-2	Compliance	Bans text editing or array splitting utilities (.split() / .replace()) across all scripts.	Custom string parsing is executed manually via index tracking loops.
+NFR-3	Compliance	Bans native reduction utilities like max(), min(), or sum() where arithmetic loops are required.	Replaces native methods with manual loop tracking variables to calculate cumulative math values.
+NFR-4	Compliance	Guarantees all file-handling engines execute using protected context wrappers or reliable cleanup loops.	Enforces clean resource workflows by utilizing strict with open(...) operational scopes across all file systems.
+NFR-5	Compliance	Structural clarity and system modularity verified by descriptive documentation blocks across classes and functions.	Uses decoupled project zones and consistent commentary models to maximize architecture readability.
 
-| ID | Module / Unit | Requirement Description | Compliance Status | Implementation Reference in `main.py` | Verification Evidence |
-| :--- | :--- | :--- | :---: | :--- | :--- |
-| **FR-1.1** | Unit 1: State Engine | Interactive CLI event loop built with nested `while` loops; continues after valid/invalid commands; exits only on explicit `"exit"` | **MET** | Lines 142–330 (`run_cli_event_loop`) | Outer `while system_running` + inner `while session_active`. Handled `"exit"` cleanly in automated CLI test suite. |
-| **FR-1.2** | Unit 1: State Engine | Compound interest & penalty calculation using ONLY `+ - * / // % **` inside loops (no math module) | **MET** | Lines 45–103 (`calculate_compound_interest_and_penalty`) | Zero `math` imports; compounding computed via `(1.0 + r/n)**n`; penalties subtracted via loop. |
-| **FR-1.3** | Unit 1: State Engine | `trajectory_guard(sequence)` using short-circuit `and`/`or` evaluation to halt immediately when balance < threshold OR termination flag is found | **MET** | Lines 106–140 (`trajectory_guard`) | Short-circuit check `(balance < safety_threshold) or (term_flag is True ...)` halts step iteration immediately on breach. |
-| **FR-2.1** | Unit 2: Parser & Closures | `parse_raw_log_line` manual token parser using index tracking, character iteration, slicing, and state flags (no `str.split`, no `str.replace`) | **MET** | Lines 337–421 (`parse_raw_log_line`) | Character-by-character while loop, state flag `in_quotes`, explicit slice slicing for newlines. Zero `.split(` or `.replace(`. |
-| **FR-2.2** | Unit 2: Parser & Closures | Delimiter inside quoted field treated as data; escaped quote pair (`""`) inside quotes converted to single literal quote (`"`) | **MET** | Lines 380–405 (`parse_raw_log_line`) | Checks `char == quote_char` and `line[i+1] == quote_char`, advancing `i += 2` to yield literal `"`. |
-| **FR-2.3** | Unit 2: Parser & Closures | Handle empty fields (e.g. `,,`) and trailing delimiters (e.g. `a,b,`) accurately | **MET** | Lines 410–420 (`parse_raw_log_line`) | Appends empty tokens upon successive delimiters and after loop completion. |
-| **FR-2.4** | Unit 2: Parser & Closures | `create_audit_filter(threshold)` returning nested function using `nonlocal` to count audited records across calls independently | **MET** | Lines 424–478 (`create_audit_filter`) | Enclosed `audit_count` and `passed_count` modified with `nonlocal`. Tested independent isolation between filters. |
-| **FR-2.5** | Unit 2: Parser & Closures | Build list of lambda filters in a loop where each lambda tests k-th positional criterion, avoiding late binding via `k=k` default argument | **MET** | Lines 481–508 (`build_positional_criteria_filters`) | Loop constructs `lambda record, k=k: ...`. Verified position 0, 1, 2 evaluated independently without late-binding corruption. |
-| **FR-3.1** | Unit 3: Data Inversion | Produce service reverse index from `raw_db` using a SINGLE dict comprehension (key=service tag, value=sorted list of unique (Account, Branch) tuples) | **MET** | Lines 515–558 (`invert_bank_services`) | Single dict comprehension mapping `{service: sorted(list({(acc_id, branch_id) ...})) for service in sorted({...})}`. |
-| **FR-3.2** | Unit 3: In-Place Processing | `clean_transaction_queue(data_list)` accepts heterogeneous list and modifies the SAME object in place (`id()` unchanged, no re-binding) | **MET** | Lines 561–636 (`clean_transaction_queue`) | `assert id(data_list) == initial_id` passes; zero parameter re-binding (`data_list = [...]` absent). |
-| **FR-3.3** | Unit 3: In-Place Processing | Convert every tuple element into a list; remove even-numbered transaction IDs from every set via set difference | **MET** | Lines 585–602 (`clean_transaction_queue`) | `data_list[idx] = list(data_list[idx])` and `.difference(evens)` applied in place. |
-| **FR-3.4** | Unit 3: In-Place Processing | Sort every embedded list descending; remove duplicate primitive values by scanning and DELETING BY INDEX (no separate collection for dedup) | **MET** | Lines 604–634 (`clean_transaction_queue`) | Embedded lists sorted via `.sort(reverse=True)`; duplicate primitives deleted with `del data_list[i]` with zero sets/dicts. |
-| **FR-4.1** | Unit 4: File Engine | Exception hierarchy: `BaseSystemError(Exception)` with subclasses `CorruptedRecordError`, `OutOfBoundsError`, `InsufficientBalanceError` | **MET** | Lines 642–660 | Explicitly declared hierarchy with clear docstrings and error messaging. |
-| **FR-4.2** | Unit 4: File Engine | Update `accounts.db` in `r+` mode: locate records with `f.tell()`/`f.seek()`, overwrite in place without damaging adjacent lines; chunked shifting & `f.truncate()` | **MET** | Lines 663–764 (`update_account_record_inplace`) | Strictly `"r+"` mode. Handles delta=0, delta<0 (shift backward + truncate), delta>0 (shift forward from EOF). Zero neighbouring line corruption. |
-| **FR-4.3** | Unit 4: File Engine | Corrupted record identification: wrong field count (!= 3), non-numeric balance, or unknown account type | **MET** | Lines 790–825 (`process_and_audit_accounts_file`) | Checks token length == 3, membership in `("SAVINGS", "CURRENT", "CREDIT")`, and `float(bal_str)`. |
-| **FR-4.4** | Unit 4: File Engine | Use `try-except-else-finally` per record. Valid updates -> `ledger.txt` (timestamp); invalid -> `corrupted.log` with line number; `finally` reports counts | **MET** | Lines 795–845 (`process_and_audit_accounts_file`) | Full `try-except-else-finally` structure. Timestamped ledger entries, line-numbered corruption logs, mandatory summary reporting. |
-| **FR-5.1** | Unit 5: OOP & Polymorphism | `Account` class: private `__balance`, protected `_account_id`, class attribute `total_accounts`, getters/setters, name mangling demonstration | **MET** | Lines 860–920 (`Account`) | Mangled `_Account__balance` verified in test suite; `total_accounts` tracked; setters enforce numeric types. |
-| **FR-5.2** | Unit 5: OOP & Polymorphism | Subclasses `SavingsAccount` (min 1000), `CurrentAccount` (overdraft limit), `CreditAccount` (2.5% surcharge); all calling `super().__init__()` | **MET** | Lines 923–1075 | All constructors invoke `super().__init__()` (no hardcoded base names); settlement business logic implemented. |
-| **FR-5.3** | Unit 5: OOP & Polymorphism | `execute_batch_settlement` settles mixed list polymorphically; EACH call wrapped in isolated try-except; reports successes/failures (no min/max/sum) | **MET** | Lines 1078–1135 (`execute_batch_settlement`) | Isolated per-account try-except block; manual loop tallying (`success_count += 1`); zero use of `sum()`, `min()`, or `max()`. |
-| **NFR-1** | Non-Functional | Strictly Python 3.x with ONLY `random` and `datetime` imports (no csv, json, re, math, os, sys, etc.) | **MET** | Lines 27–28 (`main.py`) | Grep verification confirms zero other imports exist in the file. |
-| **NFR-2** | Non-Functional | Zero use of `str.split()` or `str.replace()` in the manual parser or command tokenization | **MET** | Lines 337–421, 187 | Zero `.split(` or `.replace(` calls across the entire codebase. |
-| **NFR-3** | Non-Functional | Zero use of `max()`, `min()`, `sum()` where loop tracking or reductions are required | **MET** | Entire `main.py` | Verified zero invocations of `max()`, `min()`, or `sum()` anywhere in executable code. |
-| **NFR-4** | Non-Functional | Every file opened with `with` statement or closed in a `finally` block | **MET** | Lines 190, 675, 765, 808, 818, etc. | 100% of file I/O operations managed within `with open(...)` context managers. |
-| **NFR-5** | Non-Functional | Modular codebase with clear section labels and comprehensive docstrings on every class and function | **MET** | Entire `main.py` | All 5 modules clearly demarcated; docstrings specify parameters, returns, and algorithmic constraints. |
 
----
+5. Core Algorithmic Mechanics
 
-## 5. Algorithmic In-Depth Explanations
 
-### 5.1 In-Place Chunked Shifting (`r+` Mode) in File Engine
+5.1 In-Place Stream Realignment via Block Shifts (r+ Mode)
 
-The file engine updates records in `accounts.db` without reading the entire file into memory or recreating the file with `"w"` mode. 
+The system's file manipulation architecture updates database strings directly within accounts.db without loading entire files into volatile storage or relying on destructive write operations.
+Assuming a line alteration occurs at a designated file pointer position P:
+1. Size Deviation Analysis:
+\(\text{Deviation\ }(\delta )=\text{Length}(R_{\text{target}})-\text{Length}(R_{\text{current}})\)
+2. Zero Footprint Scenario (δ = 0):
+The engine positions the file cursor exactly at coordinate P and writes the updated record string directly. Neighboring text tracks are left unaltered.
+3. Payload Reduction Scenario (δ < 0):
+	• The updated line \(R_{\text{target}}\) is injected at position P.
+	• Retained document text starting from index \(P + \text{Length}(R_{\text{current}})\) is shifted backward by exactly |δ| bytes using sequential 64-byte blocks.
+	• Because the target insertion mark constantly trails behind the read pointer location, subsequent data remains safe from structural collisions.
+	• The system calls f.truncate(new_eof) to clean out remaining artifact bytes from the end of the file stream.
+4. Payload Expansion Scenario (δ > 0):
+	• Retained document segments are systematically moved forward by δ bytes, beginning from the actual end of the file stream (EOF) and tracking backward until reaching coordinate \(P + \text{Length}(R_{\text{current}})\).
+	• This reverse relocation loop ensures that writing into freshly opened data gaps never overrides downstream data blocks.
+	• The expanded string \(R_{\text{target}}\) is cleanly written directly into the newly made file gap at location P.
 
-Given an update on record $R$ at byte offset $O$:
-1. **Delta Calculation**:
-   $$\Delta = \text{len}(R_{\text{new}}) - \text{len}(R_{\text{old}})$$
-2. **Case $\Delta = 0$ (Equal Size)**:
-   The file pointer seeks directly to $O$ and overwrites $R_{\text{new}}$. Adjacent lines are untouched.
-3. **Case $\Delta < 0$ (Payload Contraction)**:
-   - $R_{\text{new}}$ is written at $O$.
-   - The remaining file data starting at $O + \text{len}(R_{\text{old}})$ is shifted leftward by $|\Delta|$ bytes in fixed chunks of 64 bytes.
-   - Because write position is always behind read position, no unread data is overwritten.
-   - `f.truncate(new_eof)` is invoked to release trailing bytes.
-4. **Case $\Delta > 0$ (Payload Expansion)**:
-   - The remainder of the file is shifted rightward by $\Delta$ bytes starting from the end of the file (EOF) moving backward in 64-byte chunks toward $O + \text{len}(R_{\text{old}})$.
-   - This backward pass guarantees that writing into expanded offsets never corrupts unread bytes.
-   - $R_{\text{new}}$ is written into the gap at $O$.
-   - All neighbouring records remain 100% byte-identical.
+5.2 Deterministic Parsing State Automaton
 
-### 5.2 Manual Lexer State Machine
+The independent parsing tool parse_raw_log_line coordinates processing via a strict Finite State Machine topology:
+• Operating States: ZONE_EXTERNAL, ZONE_INTERNAL.
+• Transition Pathways:
+	• ZONE_EXTERNAL + encountering a quote_char → System state switches to ZONE_INTERNAL.
+	• ZONE_EXTERNAL + encountering a delimiter → Flushes active character buffers out to token storage, then resets processing registers.
+	• ZONE_INTERNAL + encountering a quote_char:
+		• Lookahead probe confirms line[idx + 1] == quote_char → Injects a literal double-quote character quote_char into active memory and moves the system index tracker forward by 2 positions (safely routing past escaped "" patterns).
+		• Negative Match → Returns execution state back to ZONE_EXTERNAL.
+• Row delimiters encountered while operating inside ZONE_INTERNAL are captured directly as valid string content and added to the text array buffer.
+• Line termination elements (\r, \n) are stripped via pointer slices without invoking convenience tools like .strip().
 
-The manual lexer `parse_raw_log_line` implements a deterministic finite state machine (FSM):
-- **States**: `OUTSIDE_QUOTES`, `INSIDE_QUOTES`.
-- **Transitions**:
-  - `OUTSIDE_QUOTES` + `quote_char` $\rightarrow$ Enter `INSIDE_QUOTES`.
-  - `OUTSIDE_QUOTES` + `delimiter` $\rightarrow$ Emit accumulated token, reset buffer.
-  - `INSIDE_QUOTES` + `quote_char`:
-    - Lookahead `line[i+1] == quote_char` $\rightarrow$ Emit literal `quote_char`, advance index by 2 (handles `""`).
-    - Otherwise $\rightarrow$ Return to `OUTSIDE_QUOTES`.
-  - Delimiters encountered within `INSIDE_QUOTES` are appended directly to the token character buffer as data.
-  - Slicing removes trailing `\r` and `\n` without calling `str.strip()` or `str.replace()`.
+5.3 Element Purging via Index Tracking
 
-### 5.3 Deduplication by Index Deletion Without Tracking Sets
+The clean-up utility clean_transaction_queue performs in-place arrays and primitive element deduplication without allocating tracking tools like duplicate sets or temporary lookups (set(), dict(), or secondary lists):
+• A primary pointer tracking variable i scans from 0 to the total structural length of the collection (len(data_stream)).
+• For every item checked at position i, an auxiliary secondary check pointer j reviews all preceding array items from position 0 up to i-1.
+• Precise type checks (type(previous) is type(current) and previous == current) isolate true structural values, protecting boolean data types from colliding with equivalent numerical flags (such as 1 vs True).
+• When a duplicate match is confirmed, the engine calls del data_stream[i]. The primary scanning pointer i skips incrementing for that step, forcing an immediate evaluation of the newly shifted array element.
 
-`clean_transaction_queue` performs in-place deduplication of primitive types without using tracking collections (`set()`, `dict()`, or `list()`):
-- An outer pointer `i` traverses from $0$ to $\text{len}(\text{data\_list})$.
-- For every primitive element at index `i`, an inner index `j` scans previous elements from $0$ to $i-1$.
-- Strict type identity checks (`type(prev) is type(curr) and prev == curr`) distinguish between numeric equivalents (e.g. `1` vs `True`).
-- If a match is found, `del data_list[i]` is invoked. Index `i` is not incremented, seamlessly evaluating the newly shifted element.
+6. Operation and System Launch Guidelines
 
----
 
-## 6. Execution and Verification Guide
+6.1 Executing the Verification Blueprint
 
-### 6.1 Running the Automated Demonstration Suite
-
-To execute the verification suite that exercises all 5 units:
-
-```powershell
+To spin up the automated verification sequence and exercise all 5 internal technical components, launch the script from your terminal:
+bash
 python main.py
-```
+Use code with caution.
+On execution, the system processes the following pipelines:
+1. Segment A: Validates compound interest math without relying on math packages; tests the short-circuit evaluation logic.
+2. Segment B: Parses complex, escaped log datasets; validates state separation across closures; validates lambda positional indices.
+3. Segment C: Performs a reverse index catalog build using a singular dictionary comprehension; demonstrates true in-place array cleanup tracking.
+4. Segment D: Tests "r+" in-place storage row edits across variable lengths (expansion, reduction, and equal); processes multi-column file audits via structured try-except-else-finally blocks.
+5. Segment E: Validates variable access controls; executes polymorphic transactions across specialized account variations; monitors batch settlements without built-in reduction operations.
 
-When run, the engine executes:
-1. **Unit 1**: Interest calculation without math library; trajectory guard short-circuit test.
-2. **Unit 2**: Manual parsing of quoted/escaped logs; closure independent counters; positional lambda criteria.
-3. **Unit 3**: Service catalog single-comprehension inversion; in-place queue cleaning with `id()` check.
-4. **Unit 4**: `r+` in-place file update (shrink, expand, equal); corrupted file audit with `try-except-else-finally` and summary counts.
-5. **Unit 5**: Name mangling demonstration; polymorphic settlement across savings, current, and credit accounts; batch execution.
+6.2 Navigating the Interactive System Console
 
-### 6.2 Using the Interactive CLI
-
-After the automated tests complete, the interactive CLI launches automatically. Available commands:
-- `help`: Display command menu.
-- `list`: View registered in-memory accounts.
-- `create <id> <type> <balance>`: Spawn a new account (`SAVINGS`, `CURRENT`, or `CREDIT`).
-- `deposit <id> <amount>`: Deposit funds.
-- `withdraw <id> <amount>`: Perform settlement withdrawal.
-- `interest <principal> <rate> <periods>`: Run interest and penalty simulation.
-- `guard`: Test short-circuit trajectory guard.
-- `update <id> <type> <balance>`: Execute in-place `r+` database update.
-- `audit`: Run accounts database audit and logging.
-- `settle <amount>`: Perform polymorphic batch settlement.
-- `exit`: Safely shut down the PTMAE engine.
+Once the automated verification cycles finish, the primary system console boots up within your terminal window. The interactive environment accepts the following core directives:
+• help: Loads the system console navigation menu.
+• list: Displays all active memory records.
+• create <account_id> <account_type> <initial_funds>: Registers an entirely new profile tracking object (SAVINGS, CURRENT, or CREDIT).
+• deposit <account_id> <transaction_value>: Moves funds safely into an active profile.
+• withdraw <account_id> <transaction_value>: Processes a transaction deduction against a target record.
+• interest <principal> <rate_of_yield> <intervals>: Simulates a compounding project calculation.
+• guard: Verifies early-exit validation structures.
+• update <account_id> <account_type> <target_value>: Modifies record text inside files using raw "r+" block alignments.
+• audit: Starts an immediate database ledger validation run.
+• settle <transaction_value>: Initiates a polymorphic batch settlement routine.
+• exit: Gracefully shuts down the terminal application framework.
